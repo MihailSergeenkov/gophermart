@@ -110,6 +110,18 @@ func TestRegisterUser(t *testing.T) {
 			defer closeBody(t, res)
 
 			assert.Equal(t, test.want.code, res.StatusCode)
+
+			if http.StatusOK == res.StatusCode {
+				cookies := res.Cookies()
+				var authCookie *http.Cookie
+				for _, cookie := range cookies {
+					if cookie.Name == "AUTH_TOKEN" {
+						authCookie = cookie
+					}
+
+				}
+				assert.Equal(t, test.serviceResponse.res.AuthToken, authCookie.Value)
+			}
 		})
 	}
 }
@@ -222,6 +234,18 @@ func TestLoginUser(t *testing.T) {
 			defer closeBody(t, res)
 
 			assert.Equal(t, test.want.code, res.StatusCode)
+
+			if http.StatusOK == res.StatusCode {
+				cookies := res.Cookies()
+				var authCookie *http.Cookie
+				for _, cookie := range cookies {
+					if cookie.Name == "AUTH_TOKEN" {
+						authCookie = cookie
+					}
+
+				}
+				assert.Equal(t, test.serviceResponse.res.AuthToken, authCookie.Value)
+			}
 		})
 	}
 }

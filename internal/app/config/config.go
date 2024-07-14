@@ -19,14 +19,14 @@ type Settings struct {
 func Setup() (*Settings, error) {
 	s := Settings{LogLevel: zapcore.ErrorLevel}
 
-	if err := parseFlags(&s); err != nil {
+	if err := s.parseFlags(); err != nil {
 		return nil, fmt.Errorf("failed to parse config: %w", err)
 	}
 
 	return &s, nil
 }
 
-func parseFlags(s *Settings) error {
+func (s *Settings) parseFlags() error {
 	err := env.Parse(s)
 
 	if err != nil {
