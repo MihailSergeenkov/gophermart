@@ -9,8 +9,8 @@ CREATE UNIQUE INDEX login_index ON users(login);
 
 CREATE TABLE balance(
 	user_id INT REFERENCES users(id) ON DELETE CASCADE NOT NULL,
-  current INT DEFAULT 0 NOT NULL,
-  withdrawn INT DEFAULT 0 NOT NULL
+  current NUMERIC(10,2) DEFAULT 0 NOT NULL,
+  withdrawn NUMERIC(10,2) DEFAULT 0 NOT NULL
 );
 CREATE UNIQUE INDEX user_id_index ON balance(user_id);
 
@@ -19,7 +19,7 @@ CREATE TABLE orders(
 	number VARCHAR(200) NOT NULL,
 	user_id INT REFERENCES users(id) ON DELETE CASCADE NOT NULL,
   status order_status DEFAULT 'NEW' NOT NULL,
-  accrual INT DEFAULT 0 NOT NULL,
+  accrual NUMERIC(10,2) DEFAULT 0 NOT NULL,
   uploaded_at TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL
 );
 CREATE UNIQUE INDEX number_index ON orders(number);
@@ -28,7 +28,7 @@ CREATE UNIQUE INDEX number_index ON orders(number);
 CREATE TABLE withdrawals(
 	order_number VARCHAR(200) NOT NULL,
 	user_id INT REFERENCES users(id) ON DELETE CASCADE NOT NULL,
-  sum INT NOT NULL,
+  sum NUMERIC(10,2) NOT NULL,
   processed_at TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL
 );
 CREATE UNIQUE INDEX order_number_index ON withdrawals(order_number);

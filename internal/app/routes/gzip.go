@@ -11,7 +11,7 @@ import (
 	"go.uber.org/zap"
 )
 
-const maxStatusCode = 300
+const maxStatusCode = 202
 
 type compressWriter struct {
 	http.ResponseWriter

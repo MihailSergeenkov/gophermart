@@ -24,9 +24,9 @@ var ErrServer = errors.New("some server error")
 var ErrUnexpectedStatusCode = errors.New("unexpected status code")
 
 type responseOrderAccrual struct {
-	Order   string `json:"order"`
-	Status  string `json:"status"`
-	Accrual int    `json:"accrual,omitempty"`
+	Order   string  `json:"order"`
+	Status  string  `json:"status"`
+	Accrual float32 `json:"accrual,omitempty"`
 }
 
 type AccrualClient struct {
@@ -45,9 +45,9 @@ func newAccrualClient(settings *config.Settings, logger *zap.Logger) *AccrualCli
 	}
 }
 
-func (ac *AccrualClient) GetOrderAccrual(number string) (string, int, error) {
+func (ac *AccrualClient) GetOrderAccrual(number string) (string, float32, error) {
 	const path = "/api/orders/"
-	result, err := url.JoinPath("http://", ac.settings.AccrualSystemAddress, path, number)
+	result, err := url.JoinPath(ac.settings.AccrualSystemAddress, path, number)
 	if err != nil {
 		ac.logger.Error("failed to construct URL", zap.Error(err))
 		return "", 0, fmt.Errorf("failed to construct URL: %w", err)
@@ -68,7 +68,7 @@ func (ac *AccrualClient) GetOrderAccrual(number string) (string, int, error) {
 	return parseResponse(response)
 }
 
-func parseResponse(response *http.Response) (string, int, error) {
+func parseResponse(response *http.Response) (string, float32, error) {
 	switch response.StatusCode {
 	case http.StatusOK:
 		return decodeResponse(response)
@@ -83,7 +83,7 @@ func parseResponse(response *http.Response) (string, int, error) {
 	}
 }
 
-func decodeResponse(response *http.Response) (string, int, error) {
+func decodeResponse(response *http.Response) (string, float32, error) {
 	var res responseOrderAccrual
 
 	dec := json.NewDecoder(response.Body)

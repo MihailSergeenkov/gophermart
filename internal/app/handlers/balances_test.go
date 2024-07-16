@@ -48,15 +48,15 @@ func TestGetBalance(t *testing.T) {
 			name: "get balance success",
 			serviceResponse: serviceResponse{
 				res: models.Balance{
-					Current:   100,
-					Withdrawn: 100,
+					Current:   100.22,
+					Withdrawn: 100.22,
 				},
 				err: nil,
 			},
 			want: want{
 				code:          http.StatusOK,
 				contentType:   common.JSONContentType,
-				body:          "{\"current\":100,\"withdrawn\":100}\n",
+				body:          "{\"current\":100.22,\"withdrawn\":100.22}\n",
 				errorLogTimes: 0,
 				log:           "",
 			},

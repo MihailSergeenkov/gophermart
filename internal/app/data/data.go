@@ -21,9 +21,9 @@ type Storager interface {
 	GetOrdersByUserID(ctx context.Context) ([]models.Order, error)
 	GetOrdersByStatus(ctx context.Context, statuses ...string) ([]models.Order, error)
 	AddOrder(ctx context.Context, number string) (models.Order, bool, error)
-	UpdateOrder(ctx context.Context, number string, status string, accrual int) error
+	UpdateOrder(ctx context.Context, number string, status string, accrual float32) error
 	GetWithdrawals(ctx context.Context) ([]models.Withdraw, error)
-	AddWithdraw(ctx context.Context, orderNumber string, sum int) error
+	AddWithdraw(ctx context.Context, orderNumber string, sum float32) error
 	GetBalance(ctx context.Context) (models.Balance, error)
 	Ping(ctx context.Context) error
 	Close() error

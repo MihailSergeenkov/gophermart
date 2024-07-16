@@ -29,10 +29,13 @@ func NewRouter(h Handlerer, settings *config.Settings, l *zap.Logger, s data.Sto
 
 	r.Route("/api/user", func(r chi.Router) {
 		r.Use(requestLogging(l))
-		r.Use(middleware.AllowContentType(common.JSONContentType))
 
-		r.Post("/register", h.RegisterUser())
-		r.Post("/login", h.LoginUser())
+		r.Group(func(r chi.Router) {
+			r.Use(middleware.AllowContentType(common.JSONContentType))
+
+			r.Post("/register", h.RegisterUser())
+			r.Post("/login", h.LoginUser())
+		})
 
 		r.Group(func(r chi.Router) {
 			r.Use(authMiddleware(settings, l, s))
@@ -48,7 +51,11 @@ func NewRouter(h Handlerer, settings *config.Settings, l *zap.Logger, s data.Sto
 
 			r.Route("/balance", func(r chi.Router) {
 				r.Get("/", h.GetBalance())
-				r.Post("/withdraw", h.AddWithdraw())
+
+				r.Group(func(r chi.Router) {
+					r.Use(middleware.AllowContentType(common.JSONContentType))
+					r.Post("/withdraw", h.AddWithdraw())
+				})
 			})
 		})
 	})

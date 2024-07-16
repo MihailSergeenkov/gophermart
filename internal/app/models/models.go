@@ -25,27 +25,27 @@ type LoginUserResponse struct {
 }
 
 type AddWithdrawRequest struct {
-	OrderNumber string `json:"order"`
-	Sum         int    `json:"sum"`
+	OrderNumber string  `json:"order"`
+	Sum         float32 `json:"sum"`
 }
 
 type Order struct {
 	UploadedAt time.Time `json:"uploaded_at"`
 	Number     string    `json:"number"`
 	Status     string    `json:"status"`
-	Accrual    int       `json:"accrual,omitempty"`
+	Accrual    float32   `json:"accrual,omitempty"`
 	UserID     int       `json:"-"`
 }
 
 type Balance struct {
-	Current   int `json:"current"`
-	Withdrawn int `json:"withdrawn"`
+	Current   float32 `json:"current"`
+	Withdrawn float32 `json:"withdrawn"`
 }
 
 type Withdraw struct {
 	ProcessedAt time.Time `json:"processed_at"`
 	OrderNumber string    `json:"order"`
-	Sum         int       `json:"sum"`
+	Sum         float32   `json:"sum"`
 }
 
 type User struct {

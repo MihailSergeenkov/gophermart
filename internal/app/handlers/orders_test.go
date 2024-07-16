@@ -166,7 +166,7 @@ func TestGetOrders(t *testing.T) {
 				code:        http.StatusOK,
 				contentType: common.JSONContentType,
 				body: fmt.Sprintf(
-					"[{\"number\":\"12345678\",\"status\":\"NEW\",\"uploaded_at\":%q}]\n",
+					"[{\"uploaded_at\":%q,\"number\":\"12345678\",\"status\":\"NEW\"}]\n",
 					uploadedAt.Format(time.RFC3339Nano)),
 				errorLogTimes: 0,
 				log:           "",

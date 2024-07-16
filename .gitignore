@@ -22,3 +22,4 @@ vendor/
 .idea
 .vscode
 lint-report.json
+gophermarttest-darwin-amd64

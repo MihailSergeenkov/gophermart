@@ -67,7 +67,7 @@ func (mr *MockStoragerMockRecorder) AddUser(ctx, userLogin, userPassword interfa
 }
 
 // AddWithdraw mocks base method.
-func (m *MockStorager) AddWithdraw(ctx context.Context, orderNumber string, sum int) error {
+func (m *MockStorager) AddWithdraw(ctx context.Context, orderNumber string, sum float32) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AddWithdraw", ctx, orderNumber, sum)
 	ret0, _ := ret[0].(error)
@@ -204,7 +204,7 @@ func (mr *MockStoragerMockRecorder) Ping(ctx interface{}) *gomock.Call {
 }
 
 // UpdateOrder mocks base method.
-func (m *MockStorager) UpdateOrder(ctx context.Context, number, status string, accrual int) error {
+func (m *MockStorager) UpdateOrder(ctx context.Context, number, status string, accrual float32) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateOrder", ctx, number, status, accrual)
 	ret0, _ := ret[0].(error)

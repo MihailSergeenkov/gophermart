@@ -193,7 +193,7 @@ func (s *DBStorage) AddOrder(ctx context.Context, number string) (models.Order, 
 	return o, isNewOrder, nil
 }
 
-func (s *DBStorage) UpdateOrder(ctx context.Context, number string, status string, accrual int) error {
+func (s *DBStorage) UpdateOrder(ctx context.Context, number string, status string, accrual float32) error {
 	const updateQuery = `UPDATE orders SET (status, accrual) = ($2, $3) WHERE number = $1 RETURNING user_id`
 	const updateBalanceQuery = `UPDATE balance SET current = current + $1 WHERE user_id = $2`
 
@@ -257,7 +257,7 @@ func (s *DBStorage) GetWithdrawals(ctx context.Context) ([]models.Withdraw, erro
 	return withdrawals, nil
 }
 
-func (s *DBStorage) AddWithdraw(ctx context.Context, orderNumber string, sum int) error {
+func (s *DBStorage) AddWithdraw(ctx context.Context, orderNumber string, sum float32) error {
 	const getBalanceQuery = `SELECT current FROM balance WHERE user_id = $1 LIMIT 1`
 	const addQuery = `
 		INSERT INTO withdrawals (order_number, sum, user_id) VALUES ($1, $2, $3) 
@@ -276,7 +276,7 @@ func (s *DBStorage) AddWithdraw(ctx context.Context, orderNumber string, sum int
 
 	row := tx.QueryRow(ctx, getBalanceQuery, ctx.Value(common.KeyUserID))
 
-	var current int
+	var current float32
 	if err := row.Scan(&current); err != nil {
 		return fmt.Errorf(failedScanStr, err)
 	}

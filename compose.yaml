@@ -13,6 +13,7 @@ services:
       - backend
   gophermart:
     image: gophermart:latest
+    restart: always
     build:
       context: .
       dockerfile: gophermart.Dockerfile
@@ -40,6 +41,7 @@ services:
       - backend
   accrual:
     image: accrual:latest
+    restart: always
     build:
       context: .
       dockerfile: accrual.Dockerfile

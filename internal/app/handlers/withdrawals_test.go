@@ -28,10 +28,10 @@ func TestAddWithdraw(t *testing.T) {
 	l := mocks.NewMockLogger(mockCtrl)
 	handlers := NewHandlers(s, l)
 
-	requestBody := "{\"order\":\"12345678\",\"sum\":100}"
+	requestBody := "{\"order\":\"12345678\",\"sum\":100.22}"
 	requestObject := models.AddWithdrawRequest{
 		OrderNumber: "12345678",
-		Sum:         100,
+		Sum:         100.22,
 	}
 
 	type serviceResponse struct {
@@ -120,7 +120,7 @@ func TestFailedReadBodyAddWithdraw(t *testing.T) {
 	l := mocks.NewMockLogger(mockCtrl)
 	handlers := NewHandlers(s, l)
 
-	requestBody := "{\"order\":\"12345678\",\"sum\":100,adasd}"
+	requestBody := "{\"order\":\"12345678\",\"sum\":100.22,adasd}"
 
 	t.Run("failed to read request body", func(t *testing.T) {
 		_ = s.EXPECT().AddWithdraw(gomock.Any(), gomock.Any()).Times(0)
@@ -172,7 +172,7 @@ func TestGetWithdrawals(t *testing.T) {
 				res: []models.Withdraw{
 					{
 						OrderNumber: "12345678",
-						Sum:         100,
+						Sum:         100.22,
 						ProcessedAt: processedAt,
 					},
 				},
@@ -182,7 +182,7 @@ func TestGetWithdrawals(t *testing.T) {
 				code:        http.StatusOK,
 				contentType: common.JSONContentType,
 				body: fmt.Sprintf(
-					"[{\"order\":\"12345678\",\"sum\":100,\"processed_at\":%q}]\n",
+					"[{\"processed_at\":%q,\"order\":\"12345678\",\"sum\":100.22}]\n",
 					processedAt.Format(time.RFC3339Nano)),
 				errorLogTimes: 0,
 				log:           "",

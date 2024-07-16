@@ -10,7 +10,7 @@ import (
 
 type Settings struct {
 	RunAddr              string        `env:"RUN_ADDRESS" envDefault:"localhost:8080"`
-	AccrualSystemAddress string        `env:"ACCRUAL_SYSTEM_ADDRESS" envDefault:"localhost:8081"`
+	AccrualSystemAddress string        `env:"ACCRUAL_SYSTEM_ADDRESS" envDefault:"http://localhost:8081"`
 	DatabaseURI          string        `env:"DATABASE_URI" envDefault:"postgresql://postgres@localhost:5432/gophermart"`
 	SecretKey            string        `env:"SECRET_KEY" envDefault:"1234567890"`
 	LogLevel             zapcore.Level `env:"LOG_LEVEL" envDefault:"ERROR"`
