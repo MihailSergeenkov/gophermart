@@ -9,16 +9,16 @@ import (
 )
 
 type BackgroudProcessing struct {
-	clients *clients.Clients
-	logger  *zap.Logger
-	store   data.Storager
+	c      *clients.Clients
+	logger *zap.Logger
+	store  data.Storager
 }
 
-func NewBackgroudProcessing(clients *clients.Clients, logger *zap.Logger, store data.Storager) *BackgroudProcessing {
+func NewBackgroudProcessing(c *clients.Clients, logger *zap.Logger, store data.Storager) *BackgroudProcessing {
 	return &BackgroudProcessing{
-		clients: clients,
-		logger:  logger,
-		store:   store,
+		c:      c,
+		logger: logger,
+		store:  store,
 	}
 }
 

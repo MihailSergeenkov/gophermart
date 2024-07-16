@@ -10,6 +10,11 @@ import (
 
 var ErrOrderNumberValidation = errors.New("order number has not been validated")
 
+const (
+	baseNumber = 10
+	maxNumber  = 9
+)
+
 type Services struct {
 	store    data.Storager
 	settings *config.Settings
@@ -31,20 +36,20 @@ func checkOrderNumber(s string) error {
 	sum := 0
 
 	for i := 1; number > 0; i++ {
-		digit := number % 10
+		digit := number % baseNumber
 
 		if i%2 == 0 {
-			digit = digit * 2
-			if digit > 9 {
-				digit = digit%10 + digit/10
+			digit *= 2
+			if digit > maxNumber {
+				digit = digit%baseNumber + digit/baseNumber
 			}
 		}
 
 		sum += digit
-		number = number / 10
+		number /= baseNumber
 	}
 
-	if sum%10 != 0 {
+	if sum%baseNumber != 0 {
 		return ErrOrderNumberValidation
 	}
 

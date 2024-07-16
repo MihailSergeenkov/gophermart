@@ -39,12 +39,12 @@ func (bp *BackgroudProcessing) processOrdersAccrual(ctx context.Context) {
 			g := new(errgroup.Group)
 
 			stopCh := make(chan struct{})
-			defer close(stopCh)
+			defer close(stopCh) //nolint:gocritic // Ложно положительное срабатывание
 
 			ordersCh := generator(stopCh, orders)
 
 			for range processOrderAccrualWorkers {
-				go worker(ctx, bp.store, bp.clients.AccrualClient, g, stopCh, ordersCh)
+				go worker(ctx, bp.store, bp.c.AccrualClient, g, stopCh, ordersCh)
 			}
 
 			if err := g.Wait(); err != nil {
@@ -76,7 +76,12 @@ func generator(stopCh <-chan struct{}, orders []models.Order) chan models.Order 
 	return inputCh
 }
 
-func worker(ctx context.Context, s data.Storager, client *clients.AccrualClient, g *errgroup.Group, stopCh <-chan struct{}, ordersCh <-chan models.Order) {
+func worker(ctx context.Context,
+	s data.Storager,
+	client *clients.AccrualClient,
+	g *errgroup.Group,
+	stopCh <-chan struct{},
+	ordersCh <-chan models.Order) {
 	for order := range ordersCh {
 		select {
 		case <-stopCh:
@@ -94,7 +99,10 @@ func worker(ctx context.Context, s data.Storager, client *clients.AccrualClient,
 	}
 }
 
-func processOrderAccrual(ctx context.Context, s data.Storager, client *clients.AccrualClient, order models.Order) error {
+func processOrderAccrual(ctx context.Context,
+	s data.Storager,
+	client *clients.AccrualClient,
+	order models.Order) error {
 	statusMap := map[string]string{
 		"REGISTERED": "PROCESSING",
 		"PROCESSING": "PROCESSING",

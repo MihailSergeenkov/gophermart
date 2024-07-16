@@ -30,10 +30,10 @@ type AddWithdrawRequest struct {
 }
 
 type Order struct {
+	UploadedAt time.Time `json:"uploaded_at"`
 	Number     string    `json:"number"`
 	Status     string    `json:"status"`
 	Accrual    int       `json:"accrual,omitempty"`
-	UploadedAt time.Time `json:"uploaded_at"`
 	UserID     int       `json:"-"`
 }
 
@@ -43,15 +43,15 @@ type Balance struct {
 }
 
 type Withdraw struct {
+	ProcessedAt time.Time `json:"processed_at"`
 	OrderNumber string    `json:"order"`
 	Sum         int       `json:"sum"`
-	ProcessedAt time.Time `json:"processed_at"`
 }
 
 type User struct {
-	ID       int
 	Login    string
 	Password string
+	ID       int
 }
 
 type Claims struct {

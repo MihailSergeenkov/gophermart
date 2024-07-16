@@ -32,7 +32,7 @@ func authMiddleware(settings *config.Settings, l *zap.Logger, s data.Storager) f
 				return
 			}
 
-			_, err := s.GetUserById(r.Context(), userID)
+			_, err := s.GetUserByID(r.Context(), userID)
 			if err != nil {
 				if errors.Is(err, data.ErrUserNotFound) {
 					w.WriteHeader(http.StatusUnauthorized)

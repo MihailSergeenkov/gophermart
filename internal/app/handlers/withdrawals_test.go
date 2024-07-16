@@ -179,9 +179,11 @@ func TestGetWithdrawals(t *testing.T) {
 				err: nil,
 			},
 			want: want{
-				code:          http.StatusOK,
-				contentType:   common.JSONContentType,
-				body:          fmt.Sprintf("[{\"order\":\"12345678\",\"sum\":100,\"processed_at\":\"%s\"}]\n", processedAt.Format(time.RFC3339Nano)),
+				code:        http.StatusOK,
+				contentType: common.JSONContentType,
+				body: fmt.Sprintf(
+					"[{\"order\":\"12345678\",\"sum\":100,\"processed_at\":%q}]\n",
+					processedAt.Format(time.RFC3339Nano)),
 				errorLogTimes: 0,
 				log:           "",
 			},

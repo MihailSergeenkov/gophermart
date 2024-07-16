@@ -144,19 +144,19 @@ func (mr *MockStoragerMockRecorder) GetOrdersByUserID(ctx interface{}) *gomock.C
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOrdersByUserID", reflect.TypeOf((*MockStorager)(nil).GetOrdersByUserID), ctx)
 }
 
-// GetUserById mocks base method.
-func (m *MockStorager) GetUserById(ctx context.Context, userID int) (models.User, error) {
+// GetUserByID mocks base method.
+func (m *MockStorager) GetUserByID(ctx context.Context, userID int) (models.User, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetUserById", ctx, userID)
+	ret := m.ctrl.Call(m, "GetUserByID", ctx, userID)
 	ret0, _ := ret[0].(models.User)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetUserById indicates an expected call of GetUserById.
-func (mr *MockStoragerMockRecorder) GetUserById(ctx, userID interface{}) *gomock.Call {
+// GetUserByID indicates an expected call of GetUserByID.
+func (mr *MockStoragerMockRecorder) GetUserByID(ctx, userID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserById", reflect.TypeOf((*MockStorager)(nil).GetUserById), ctx, userID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserByID", reflect.TypeOf((*MockStorager)(nil).GetUserByID), ctx, userID)
 }
 
 // GetUserByLogin mocks base method.

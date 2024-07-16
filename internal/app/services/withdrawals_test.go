@@ -99,7 +99,6 @@ func TestAddWithdraw(t *testing.T) {
 			if test.mResponse.err != nil && assert.Error(t, err) {
 				assert.ErrorContains(t, err, test.want.err.Error())
 			}
-
 		})
 	}
 }
@@ -126,7 +125,6 @@ func TestValidationFailedAddWithdraw(t *testing.T) {
 		if assert.Error(t, err) {
 			assert.ErrorContains(t, err, ErrOrderNumberValidation.Error())
 		}
-
 	})
 }
 

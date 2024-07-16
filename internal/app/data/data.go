@@ -15,7 +15,7 @@ var (
 )
 
 type Storager interface {
-	GetUserById(ctx context.Context, userID int) (models.User, error)
+	GetUserByID(ctx context.Context, userID int) (models.User, error)
 	GetUserByLogin(ctx context.Context, userLogin string) (models.User, error)
 	AddUser(ctx context.Context, userLogin string, userPassword string) (models.User, error)
 	GetOrdersByUserID(ctx context.Context) ([]models.Order, error)

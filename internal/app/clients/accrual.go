@@ -14,7 +14,10 @@ import (
 	"go.uber.org/zap"
 )
 
-const requestTimeout = 1 // in seconds
+const (
+	requestTimeout   = 1  // in seconds
+	baseRetryTimeout = 60 // in seconds
+)
 
 var ErrOrderRegistered = errors.New("order is not registered")
 var ErrServer = errors.New("some server error")
@@ -27,9 +30,9 @@ type responseOrderAccrual struct {
 }
 
 type AccrualClient struct {
-	client   http.Client
 	settings *config.Settings
 	logger   *zap.Logger
+	client   http.Client
 }
 
 func newAccrualClient(settings *config.Settings, logger *zap.Logger) *AccrualClient {
@@ -50,7 +53,7 @@ func (ac *AccrualClient) GetOrderAccrual(number string) (string, int, error) {
 		return "", 0, fmt.Errorf("failed to construct URL: %w", err)
 	}
 
-	request, err := http.NewRequest(http.MethodGet, result, nil)
+	request, err := http.NewRequest(http.MethodGet, result, http.NoBody)
 	if err != nil {
 		return "", 0, fmt.Errorf("failed to construct request: %w", err)
 	}
@@ -60,19 +63,20 @@ func (ac *AccrualClient) GetOrderAccrual(number string) (string, int, error) {
 	if err != nil {
 		return "", 0, fmt.Errorf("failed to make request: %w", err)
 	}
+	defer closeBody(ac, response)
 
 	return parseResponse(response)
 }
 
 func parseResponse(response *http.Response) (string, int, error) {
 	switch response.StatusCode {
-	case 200:
+	case http.StatusOK:
 		return decodeResponse(response)
-	case 204:
+	case http.StatusNoContent:
 		return "", 0, ErrOrderRegistered
-	case 429:
+	case http.StatusTooManyRequests:
 		return "", 0, generateToManyRequestsError(response)
-	case 500:
+	case http.StatusInternalServerError:
 		return "", 0, ErrServer
 	default:
 		return "", 0, ErrUnexpectedStatusCode
@@ -86,7 +90,6 @@ func decodeResponse(response *http.Response) (string, int, error) {
 	if err := dec.Decode(&res); err != nil {
 		return "", 0, fmt.Errorf("failed to decode response: %w", err)
 	}
-	response.Body.Close()
 
 	return res.Status, res.Accrual, nil
 }
@@ -95,8 +98,16 @@ func generateToManyRequestsError(response *http.Response) error {
 	headerRetryAfter := response.Header.Get("Retry-After")
 	result, err := strconv.Atoi(headerRetryAfter)
 	if err != nil {
-		return newToManyRequestsError(60)
+		return newToManyRequestsError(baseRetryTimeout)
 	}
 
 	return newToManyRequestsError(result)
+}
+
+func closeBody(ac *AccrualClient, r *http.Response) {
+	err := r.Body.Close()
+
+	if err != nil {
+		ac.logger.Error("failed to close accrual client response body", zap.Error(err))
+	}
 }

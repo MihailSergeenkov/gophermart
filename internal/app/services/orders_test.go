@@ -124,14 +124,16 @@ func TestAddOrder(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			_ = store.EXPECT().AddOrder(ctx, test.arg.number).Times(1).Return(test.mResponse.order, test.mResponse.isNewOrder, test.mResponse.err)
+			_ = store.EXPECT().
+				AddOrder(ctx, test.arg.number).
+				Times(1).
+				Return(test.mResponse.order, test.mResponse.isNewOrder, test.mResponse.err)
 
 			err := s.AddOrder(ctx, test.arg.number)
 
 			if test.mResponse.err != nil && assert.Error(t, err) {
 				assert.ErrorContains(t, err, test.want.err.Error())
 			}
-
 		})
 	}
 }
@@ -156,7 +158,6 @@ func TestValidationFailedAddOrder(t *testing.T) {
 		if assert.Error(t, err) {
 			assert.ErrorContains(t, err, ErrOrderNumberValidation.Error())
 		}
-
 	})
 }
 

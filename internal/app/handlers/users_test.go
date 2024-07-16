@@ -99,7 +99,11 @@ func TestRegisterUser(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			_ = s.EXPECT().RegisterUser(gomock.Any(), requestObject).Times(1).Return(test.serviceResponse.res, test.serviceResponse.err)
+			_ = s.EXPECT().
+				RegisterUser(gomock.Any(), requestObject).
+				Times(1).
+				Return(test.serviceResponse.res, test.serviceResponse.err)
+
 			_ = l.EXPECT().Error(test.want.log, zap.Error(test.serviceResponse.err)).Times(test.want.errorLogTimes)
 
 			request := httptest.NewRequest(http.MethodPost, "/api/user/register", strings.NewReader(requestBody))
@@ -118,7 +122,6 @@ func TestRegisterUser(t *testing.T) {
 					if cookie.Name == "AUTH_TOKEN" {
 						authCookie = cookie
 					}
-
 				}
 				assert.Equal(t, test.serviceResponse.res.AuthToken, authCookie.Value)
 			}
@@ -223,7 +226,11 @@ func TestLoginUser(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			_ = s.EXPECT().LoginUser(gomock.Any(), requestObject).Times(1).Return(test.serviceResponse.res, test.serviceResponse.err)
+			_ = s.EXPECT().
+				LoginUser(gomock.Any(), requestObject).
+				Times(1).
+				Return(test.serviceResponse.res, test.serviceResponse.err)
+
 			_ = l.EXPECT().Error(test.want.log, zap.Error(test.serviceResponse.err)).Times(test.want.errorLogTimes)
 
 			request := httptest.NewRequest(http.MethodPost, "/api/user/login", strings.NewReader(requestBody))
@@ -242,7 +249,6 @@ func TestLoginUser(t *testing.T) {
 					if cookie.Name == "AUTH_TOKEN" {
 						authCookie = cookie
 					}
-
 				}
 				assert.Equal(t, test.serviceResponse.res.AuthToken, authCookie.Value)
 			}

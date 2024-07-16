@@ -22,6 +22,8 @@ type DBStorage struct {
 	logger *zap.Logger
 }
 
+const failedScanStr = "failed to scan a response row: %w"
+
 func NewDBStorage(ctx context.Context, logger *zap.Logger, dbURI string) (*DBStorage, error) {
 	if err := runMigrations(dbURI); err != nil {
 		return nil, fmt.Errorf("failed to run DB migrations: %w", err)
@@ -40,7 +42,7 @@ func NewDBStorage(ctx context.Context, logger *zap.Logger, dbURI string) (*DBSto
 	return s, nil
 }
 
-func (s *DBStorage) GetUserById(ctx context.Context, userID int) (models.User, error) {
+func (s *DBStorage) GetUserByID(ctx context.Context, userID int) (models.User, error) {
 	const query = `SELECT id, login, password FROM users WHERE id = $1 LIMIT 1`
 
 	row := s.pool.QueryRow(ctx, query, userID)
@@ -52,7 +54,7 @@ func (s *DBStorage) GetUserById(ctx context.Context, userID int) (models.User, e
 			return models.User{}, fmt.Errorf("%w with ID: %d", ErrUserNotFound, userID)
 		}
 
-		return models.User{}, fmt.Errorf("failed to scan a response row: %w", err)
+		return models.User{}, fmt.Errorf(failedScanStr, err)
 	}
 
 	return u, nil
@@ -70,7 +72,7 @@ func (s *DBStorage) GetUserByLogin(ctx context.Context, userLogin string) (model
 			return models.User{}, fmt.Errorf("%w with ID: %s", ErrUserNotFound, userLogin)
 		}
 
-		return models.User{}, fmt.Errorf("failed to scan a response row: %w", err)
+		return models.User{}, fmt.Errorf(failedScanStr, err)
 	}
 
 	return u, nil
@@ -89,7 +91,7 @@ func (s *DBStorage) AddUser(ctx context.Context, userLogin string, userPassword 
 	row := tx.QueryRow(ctx, addUserQuery, userLogin, userPassword)
 	var u models.User
 	if err := row.Scan(&u.ID, &u.Login, &u.Password); err != nil {
-		return models.User{}, fmt.Errorf("failed to scan a response row: %w", err)
+		return models.User{}, fmt.Errorf(failedScanStr, err)
 	}
 
 	if _, err := tx.Exec(ctx, addBalanceQuery, u.ID); err != nil {
@@ -261,7 +263,10 @@ func (s *DBStorage) AddWithdraw(ctx context.Context, orderNumber string, sum int
 		INSERT INTO withdrawals (order_number, sum, user_id) VALUES ($1, $2, $3) 
 		RETURNING order_number, sum, processed_at
 	`
-	const updateBalanceQuery = `UPDATE balance SET (current, withdrawn) = (current - $1, withdrawn + $1) WHERE user_id = $2`
+	const updateBalanceQuery = `
+		UPDATE balance SET (current, withdrawn) = (current - $1, withdrawn + $1) 
+		WHERE user_id = $2
+	`
 
 	tx, err := s.pool.Begin(ctx)
 	if err != nil {
@@ -273,7 +278,7 @@ func (s *DBStorage) AddWithdraw(ctx context.Context, orderNumber string, sum int
 
 	var current int
 	if err := row.Scan(&current); err != nil {
-		return fmt.Errorf("failed to scan a response row: %w", err)
+		return fmt.Errorf(failedScanStr, err)
 	}
 
 	if current < sum {

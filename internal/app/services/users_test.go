@@ -107,7 +107,10 @@ func TestRegisterUser(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			_ = store.EXPECT().AddUser(ctx, test.arg.req.Login, gomock.Any()).Times(1).Return(test.mResponse.user, test.mResponse.err)
+			_ = store.EXPECT().
+				AddUser(ctx, test.arg.req.Login, gomock.Any()).
+				Times(1).
+				Return(test.mResponse.user, test.mResponse.err)
 
 			result, err := s.RegisterUser(ctx, test.arg.req)
 
@@ -116,7 +119,6 @@ func TestRegisterUser(t *testing.T) {
 			if test.mResponse.err != nil && assert.Error(t, err) {
 				assert.ErrorContains(t, err, test.want.err.Error())
 			}
-
 		})
 	}
 }
@@ -317,7 +319,6 @@ func TestLoginUser(t *testing.T) {
 			if test.mResponse.err != nil && assert.Error(t, err) {
 				assert.ErrorContains(t, err, test.want.err.Error())
 			}
-
 		})
 	}
 }

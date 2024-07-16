@@ -69,7 +69,7 @@ func run() error {
 		return nil
 	})
 
-	app := app.InitApp(ctx, c, l, s)
+	a := app.InitApp(ctx, c, l, s)
 
 	g.Go(func() (err error) {
 		defer func() {
@@ -79,7 +79,7 @@ func run() error {
 			}
 		}()
 
-		if err = app.ListenAndServe(); err != nil {
+		if err = a.ListenAndServe(); err != nil {
 			if errors.Is(err, http.ErrServerClosed) {
 				return
 			}
@@ -95,14 +95,14 @@ func run() error {
 		shutdownTimeoutCtx, cancelShutdownTimeoutCtx := context.WithTimeout(context.Background(), timeoutServerShutdown)
 		defer cancelShutdownTimeoutCtx()
 
-		if err := app.Shutdown(shutdownTimeoutCtx); err != nil {
+		if err := a.Shutdown(shutdownTimeoutCtx); err != nil {
 			log.Printf("an error occurred during server shutdown: %v", err)
 		}
 		return nil
 	})
 
 	if err := g.Wait(); err != nil {
-		return err
+		return fmt.Errorf("app gorutine failed: %w", err)
 	}
 
 	return nil

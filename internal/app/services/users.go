@@ -22,7 +22,8 @@ var (
 	ErrUserLoginCreds       = errors.New("user has invalid login or password")
 )
 
-func (s *Services) RegisterUser(ctx context.Context, req models.RegisterUserRequest) (models.RegisterUserResponse, error) {
+func (s *Services) RegisterUser(ctx context.Context,
+	req models.RegisterUserRequest) (models.RegisterUserResponse, error) {
 	resp := models.RegisterUserResponse{}
 
 	if err := validateRequest(req); err != nil {
@@ -99,7 +100,12 @@ func hashPassword(password string) (string, error) {
 }
 
 func verifyPassword(hashedPassword string, candidatePassword string) error {
-	return bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(candidatePassword))
+	err := bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(candidatePassword))
+	if err != nil {
+		return fmt.Errorf("failed to compare: %w", err)
+	}
+
+	return nil
 }
 
 func buildJWTString(settings *config.Settings, userID int) (string, error) {
