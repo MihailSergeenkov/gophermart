@@ -7,21 +7,18 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
-	"time"
 
-	"github.com/MihailSergeenkov/gophermart/internal/app/common"
 	"github.com/MihailSergeenkov/gophermart/internal/app/config"
 	"go.uber.org/zap"
 )
 
-const (
-	requestTimeout   = 1  // in seconds
-	baseRetryTimeout = 60 // in seconds
-)
+const baseRetryTimeout = 60 // in seconds
 
-var ErrOrderRegistered = errors.New("order is not registered")
-var ErrServer = errors.New("some server error")
-var ErrUnexpectedStatusCode = errors.New("unexpected status code")
+var (
+	ErrOrderRegistered      = errors.New("order is not registered")
+	ErrServer               = errors.New("some server error")
+	ErrUnexpectedStatusCode = errors.New("unexpected status code")
+)
 
 type responseOrderAccrual struct {
 	Order   string  `json:"order"`
@@ -30,26 +27,25 @@ type responseOrderAccrual struct {
 }
 
 type AccrualClient struct {
-	settings *config.Settings
-	logger   *zap.Logger
-	client   http.Client
+	systemAddress string
+	logger        *zap.Logger
+	client        http.Client
 }
 
 func newAccrualClient(settings *config.Settings, logger *zap.Logger) *AccrualClient {
 	return &AccrualClient{
 		client: http.Client{
-			Timeout: time.Second * requestTimeout,
+			Timeout: settings.AccrualRequestTimeout,
 		},
-		settings: settings,
-		logger:   logger,
+		systemAddress: settings.AccrualSystemAddress,
+		logger:        logger,
 	}
 }
 
 func (ac *AccrualClient) GetOrderAccrual(number string) (string, float32, error) {
 	const path = "/api/orders/"
-	result, err := url.JoinPath(ac.settings.AccrualSystemAddress, path, number)
+	result, err := url.JoinPath(ac.systemAddress, path, number)
 	if err != nil {
-		ac.logger.Error("failed to construct URL", zap.Error(err))
 		return "", 0, fmt.Errorf("failed to construct URL: %w", err)
 	}
 
@@ -58,24 +54,24 @@ func (ac *AccrualClient) GetOrderAccrual(number string) (string, float32, error)
 		return "", 0, fmt.Errorf("failed to construct request: %w", err)
 	}
 
-	request.Header.Set(common.ContentTypeHeader, common.JSONContentType)
+	request.Header.Set("Content-Type", "application/json")
 	response, err := ac.client.Do(request)
 	if err != nil {
 		return "", 0, fmt.Errorf("failed to make request: %w", err)
 	}
 	defer closeBody(ac, response)
 
-	return parseResponse(response)
+	return parseResponse(ac, response)
 }
 
-func parseResponse(response *http.Response) (string, float32, error) {
+func parseResponse(ac *AccrualClient, response *http.Response) (string, float32, error) {
 	switch response.StatusCode {
 	case http.StatusOK:
 		return decodeResponse(response)
 	case http.StatusNoContent:
 		return "", 0, ErrOrderRegistered
 	case http.StatusTooManyRequests:
-		return "", 0, generateToManyRequestsError(response)
+		return "", 0, generateTooManyRequestsError(ac, response)
 	case http.StatusInternalServerError:
 		return "", 0, ErrServer
 	default:
@@ -94,10 +90,12 @@ func decodeResponse(response *http.Response) (string, float32, error) {
 	return res.Status, res.Accrual, nil
 }
 
-func generateToManyRequestsError(response *http.Response) error {
+func generateTooManyRequestsError(ac *AccrualClient, response *http.Response) error {
 	headerRetryAfter := response.Header.Get("Retry-After")
+
 	result, err := strconv.Atoi(headerRetryAfter)
 	if err != nil {
+		ac.logger.Error("too many request for accrual parsing error", zap.Error(err))
 		return newToManyRequestsError(baseRetryTimeout)
 	}
 

@@ -2,6 +2,7 @@ package services
 
 import (
 	"errors"
+	"fmt"
 	"strconv"
 
 	"github.com/MihailSergeenkov/gophermart/internal/app/config"
@@ -30,7 +31,7 @@ func NewServices(store data.Storager, settings *config.Settings) *Services {
 func checkOrderNumber(s string) error {
 	number, err := strconv.Atoi(s)
 	if err != nil {
-		return ErrOrderNumberValidation
+		return fmt.Errorf("failed to parse order number: %w", ErrOrderNumberValidation)
 	}
 
 	sum := 0
@@ -50,7 +51,7 @@ func checkOrderNumber(s string) error {
 	}
 
 	if sum%baseNumber != 0 {
-		return ErrOrderNumberValidation
+		return fmt.Errorf("bad check sum for order number: %w", ErrOrderNumberValidation)
 	}
 
 	return nil

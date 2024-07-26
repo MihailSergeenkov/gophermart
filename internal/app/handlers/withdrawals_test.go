@@ -10,7 +10,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/MihailSergeenkov/gophermart/internal/app/common"
 	"github.com/MihailSergeenkov/gophermart/internal/app/handlers/mocks"
 	"github.com/MihailSergeenkov/gophermart/internal/app/models"
 	"github.com/MihailSergeenkov/gophermart/internal/app/services"
@@ -180,7 +179,7 @@ func TestGetWithdrawals(t *testing.T) {
 			},
 			want: want{
 				code:        http.StatusOK,
-				contentType: common.JSONContentType,
+				contentType: JSONContentType,
 				body: fmt.Sprintf(
 					"[{\"processed_at\":%q,\"order\":\"12345678\",\"sum\":100.22}]\n",
 					processedAt.Format(time.RFC3339Nano)),
@@ -230,7 +229,7 @@ func TestGetWithdrawals(t *testing.T) {
 			defer closeBody(t, res)
 
 			assert.Equal(t, test.want.code, res.StatusCode)
-			assert.Equal(t, test.want.contentType, res.Header.Get(common.ContentTypeHeader))
+			assert.Equal(t, test.want.contentType, res.Header.Get(ContentTypeHeader))
 
 			resBody, err := io.ReadAll(res.Body)
 

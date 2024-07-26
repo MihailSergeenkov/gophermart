@@ -19,7 +19,7 @@ func InitApp(ctx context.Context, settings *config.Settings, logger *zap.Logger,
 	h := handlers.NewHandlers(s, logger)
 	r := routes.NewRouter(h, settings, logger, store)
 	c := clients.InitClients(settings, logger)
-	j := jobs.NewBackgroudProcessing(c, logger, store)
+	j := jobs.NewBackgroudProcessing(c, settings, logger, store)
 	j.Start(ctx)
 
 	return &http.Server{

@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/MihailSergeenkov/gophermart/internal/app/common"
 	"go.uber.org/zap"
 )
 
@@ -17,13 +16,13 @@ func (h *Handlers) GetBalance() http.HandlerFunc {
 			return
 		}
 
-		w.Header().Set(common.ContentTypeHeader, common.JSONContentType)
+		w.Header().Set(ContentTypeHeader, JSONContentType)
 		w.WriteHeader(http.StatusOK)
 
 		enc := json.NewEncoder(w)
 		if err := enc.Encode(res); err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
-			h.logger.Error(common.EncRespErrStr, zap.Error(err))
+			h.logger.Error(encRespErrStr, zap.Error(err))
 			return
 		}
 	}

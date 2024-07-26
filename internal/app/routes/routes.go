@@ -3,7 +3,6 @@ package routes
 import (
 	"net/http"
 
-	"github.com/MihailSergeenkov/gophermart/internal/app/common"
 	"github.com/MihailSergeenkov/gophermart/internal/app/config"
 	"github.com/MihailSergeenkov/gophermart/internal/app/data"
 	"github.com/go-chi/chi/v5"
@@ -22,6 +21,9 @@ type Handlerer interface {
 	AddWithdraw() http.HandlerFunc
 }
 
+var ContentTypeHeader = "Content-Type"
+var JSONContentType = "application/json"
+
 func NewRouter(h Handlerer, settings *config.Settings, l *zap.Logger, s data.Storager) chi.Router {
 	r := chi.NewRouter()
 
@@ -31,7 +33,7 @@ func NewRouter(h Handlerer, settings *config.Settings, l *zap.Logger, s data.Sto
 		r.Use(requestLogging(l))
 
 		r.Group(func(r chi.Router) {
-			r.Use(middleware.AllowContentType(common.JSONContentType))
+			r.Use(middleware.AllowContentType(JSONContentType))
 
 			r.Post("/register", h.RegisterUser())
 			r.Post("/login", h.LoginUser())
@@ -53,7 +55,7 @@ func NewRouter(h Handlerer, settings *config.Settings, l *zap.Logger, s data.Sto
 				r.Get("/", h.GetBalance())
 
 				r.Group(func(r chi.Router) {
-					r.Use(middleware.AllowContentType(common.JSONContentType))
+					r.Use(middleware.AllowContentType(JSONContentType))
 					r.Post("/withdraw", h.AddWithdraw())
 				})
 			})

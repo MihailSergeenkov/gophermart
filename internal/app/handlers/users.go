@@ -5,7 +5,6 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/MihailSergeenkov/gophermart/internal/app/common"
 	"github.com/MihailSergeenkov/gophermart/internal/app/models"
 	"github.com/MihailSergeenkov/gophermart/internal/app/services"
 	"go.uber.org/zap"
@@ -18,7 +17,7 @@ func (h *Handlers) RegisterUser() http.HandlerFunc {
 		dec := json.NewDecoder(r.Body)
 		if err := dec.Decode(&req); err != nil {
 			w.WriteHeader(http.StatusBadRequest)
-			h.logger.Error(common.ReadReqErrStr, zap.Error(err))
+			h.logger.Error(readReqErrStr, zap.Error(err))
 			return
 		}
 
@@ -59,7 +58,7 @@ func (h *Handlers) LoginUser() http.HandlerFunc {
 		dec := json.NewDecoder(r.Body)
 		if err := dec.Decode(&req); err != nil {
 			w.WriteHeader(http.StatusBadRequest)
-			h.logger.Error(common.ReadReqErrStr, zap.Error(err))
+			h.logger.Error(readReqErrStr, zap.Error(err))
 			return
 		}
 

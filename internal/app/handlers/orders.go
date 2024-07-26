@@ -6,7 +6,6 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/MihailSergeenkov/gophermart/internal/app/common"
 	"github.com/MihailSergeenkov/gophermart/internal/app/services"
 	"go.uber.org/zap"
 )
@@ -16,7 +15,7 @@ func (h *Handlers) AddOrder() http.HandlerFunc {
 		body, err := io.ReadAll(r.Body)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
-			h.logger.Error(common.ReadReqErrStr, zap.Error(err))
+			h.logger.Error(readReqErrStr, zap.Error(err))
 			return
 		}
 
@@ -60,13 +59,13 @@ func (h *Handlers) GetOrders() http.HandlerFunc {
 			return
 		}
 
-		w.Header().Set(common.ContentTypeHeader, common.JSONContentType)
+		w.Header().Set(ContentTypeHeader, JSONContentType)
 		w.WriteHeader(http.StatusOK)
 
 		enc := json.NewEncoder(w)
 		if err := enc.Encode(orders); err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
-			h.logger.Error(common.EncRespErrStr, zap.Error(err))
+			h.logger.Error(encRespErrStr, zap.Error(err))
 			return
 		}
 	}

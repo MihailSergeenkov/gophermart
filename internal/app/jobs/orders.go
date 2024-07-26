@@ -13,13 +13,14 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-const processOrderAccrualPeriod = 10 // in seconds
-const processOrderAccrualWorkers = 3
-
 func (bp *BackgroudProcessing) processOrdersAccrual(ctx context.Context) {
 	var retryAfter time.Time
 
-	ticker := time.NewTicker(processOrderAccrualPeriod * time.Second)
+	ticker := time.NewTicker(bp.settings.ProcessOrderAccrualPeriod)
+	stopGeneratorCh := make(chan struct{})
+	defer close(stopGeneratorCh)
+	stopWorkerCh := make(chan struct{}, bp.settings.ProcessOrderAccrualWorkers)
+	defer close(stopWorkerCh)
 
 	for {
 		select {
@@ -37,21 +38,23 @@ func (bp *BackgroudProcessing) processOrdersAccrual(ctx context.Context) {
 			}
 
 			g := new(errgroup.Group)
+			ordersCh := generator(stopGeneratorCh, orders)
 
-			stopCh := make(chan struct{})
-			defer close(stopCh) //nolint:gocritic // Ложно положительное срабатывание
-
-			ordersCh := generator(stopCh, orders)
-
-			for range processOrderAccrualWorkers {
-				go worker(ctx, bp.store, bp.c.AccrualClient, g, stopCh, ordersCh)
+			for range bp.settings.ProcessOrderAccrualWorkers {
+				go worker(ctx, bp.store, bp.c.AccrualClient, g, stopWorkerCh, ordersCh)
 			}
 
 			if err := g.Wait(); err != nil {
 				var pgxError *clients.TooManyRequestsError
 				if errors.As(err, &pgxError) {
 					retryAfter = pgxError.RetryAfter
-					stopCh <- struct{}{}
+					if _, opened := <-ordersCh; opened {
+						stopGeneratorCh <- struct{}{}
+					}
+
+					for range bp.settings.ProcessOrderAccrualWorkers {
+						stopWorkerCh <- struct{}{}
+					}
 				}
 			}
 		}

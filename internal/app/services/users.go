@@ -10,11 +10,10 @@ import (
 	"github.com/MihailSergeenkov/gophermart/internal/app/models"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/jackc/pgconn"
+	"github.com/jackc/pgerrcode"
 
 	"golang.org/x/crypto/bcrypt"
 )
-
-const uniqueConstraintCode = "23505"
 
 var (
 	ErrUserValidationFields = errors.New("some fields have not been validated")
@@ -38,7 +37,7 @@ func (s *Services) RegisterUser(ctx context.Context,
 	user, err := s.store.AddUser(ctx, req.Login, hashedPassword)
 	if err != nil {
 		var pgxError *pgconn.PgError
-		if errors.As(err, &pgxError) && pgxError.Code == uniqueConstraintCode {
+		if errors.As(err, &pgxError) && pgxError.Code == pgerrcode.UniqueViolation {
 			return resp, ErrUserLoginExist
 		}
 		return resp, fmt.Errorf("failed to add user %w", err)

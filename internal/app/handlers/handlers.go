@@ -7,6 +7,13 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
+var (
+	encRespErrStr     = "error encoding response"
+	readReqErrStr     = "failed to read request body"
+	ContentTypeHeader = "Content-Type"
+	JSONContentType   = "application/json"
+)
+
 type Servicer interface {
 	RegisterUser(ctx context.Context, req models.RegisterUserRequest) (models.RegisterUserResponse, error)
 	LoginUser(ctx context.Context, req models.LoginUserRequest) (models.LoginUserResponse, error)

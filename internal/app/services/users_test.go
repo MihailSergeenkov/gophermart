@@ -11,6 +11,7 @@ import (
 	"github.com/MihailSergeenkov/gophermart/internal/app/models"
 	"github.com/golang/mock/gomock"
 	"github.com/jackc/pgconn"
+	"github.com/jackc/pgerrcode"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -96,7 +97,7 @@ func TestRegisterUser(t *testing.T) {
 			},
 			mResponse: mResponse{
 				user: models.User{},
-				err:  &pgconn.PgError{Code: uniqueConstraintCode},
+				err:  &pgconn.PgError{Code: pgerrcode.UniqueViolation},
 			},
 			want: want{
 				res: models.RegisterUserResponse{},
