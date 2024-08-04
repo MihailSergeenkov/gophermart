@@ -8,8 +8,8 @@ import (
 
 	"github.com/MihailSergeenkov/gophermart/internal/app/common"
 	"github.com/MihailSergeenkov/gophermart/internal/app/config"
-	"github.com/MihailSergeenkov/gophermart/internal/app/data/mocks"
 	"github.com/MihailSergeenkov/gophermart/internal/app/models"
+	"github.com/MihailSergeenkov/gophermart/internal/app/services/mocks"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 )

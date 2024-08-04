@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"time"
 
 	"github.com/MihailSergeenkov/gophermart/internal/app/config"
 	"go.uber.org/zap"
@@ -32,12 +33,26 @@ type AccrualClient struct {
 	client        http.Client
 }
 
-func newAccrualClient(settings *config.Settings, logger *zap.Logger) *AccrualClient {
+type TooManyRequestsError struct {
+	RetryAfter time.Time
+}
+
+func (e *TooManyRequestsError) Error() string {
+	return fmt.Sprintf("retry requests after %v", e.RetryAfter.Format("2006/01/02 15:04:05"))
+}
+
+func newToManyRequestsError(retryAfter int) error {
+	return &TooManyRequestsError{
+		RetryAfter: time.Now().Add(time.Duration(retryAfter) * time.Second),
+	}
+}
+
+func NewAccrualClient(settings *config.AccrualSettings, logger *zap.Logger) *AccrualClient {
 	return &AccrualClient{
 		client: http.Client{
-			Timeout: settings.AccrualRequestTimeout,
+			Timeout: settings.RequestTimeout,
 		},
-		systemAddress: settings.AccrualSystemAddress,
+		systemAddress: settings.SystemAddress,
 		logger:        logger,
 	}
 }

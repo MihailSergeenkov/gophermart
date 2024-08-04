@@ -3,25 +3,24 @@ package jobs
 import (
 	"context"
 
-	"github.com/MihailSergeenkov/gophermart/internal/app/clients"
 	"github.com/MihailSergeenkov/gophermart/internal/app/config"
-	"github.com/MihailSergeenkov/gophermart/internal/app/data"
+	"github.com/MihailSergeenkov/gophermart/internal/app/models"
 	"go.uber.org/zap"
 )
 
 type BackgroudProcessing struct {
-	c        *clients.Clients
 	settings *config.Settings
 	logger   *zap.Logger
-	store    data.Storager
+	store    Storager
 }
 
-func NewBackgroudProcessing(c *clients.Clients,
-	settings *config.Settings,
-	logger *zap.Logger,
-	store data.Storager) *BackgroudProcessing {
+type Storager interface {
+	UpdateOrder(ctx context.Context, number string, status string, accrual float32) error
+	GetOrdersByStatus(ctx context.Context, statuses ...string) ([]models.Order, error)
+}
+
+func NewBackgroudProcessing(settings *config.Settings, logger *zap.Logger, store Storager) *BackgroudProcessing {
 	return &BackgroudProcessing{
-		c:        c,
 		settings: settings,
 		logger:   logger,
 		store:    store,

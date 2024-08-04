@@ -50,7 +50,7 @@ type Withdraw struct {
 
 type User struct {
 	Login    string
-	Password string
+	Password []byte
 	ID       int
 }
 

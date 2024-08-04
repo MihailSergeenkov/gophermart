@@ -21,6 +21,11 @@ type DBStorage struct {
 	logger *zap.Logger
 }
 
+var (
+	ErrUserNotFound          = errors.New("user not found")
+	ErrUserInsufficientFunds = errors.New("user insufficient funds")
+)
+
 const failedScanStr = "failed to scan a response row: %w"
 
 func NewDBStorage(ctx context.Context, logger *zap.Logger, dbURI string) (*DBStorage, error) {
@@ -77,7 +82,7 @@ func (s *DBStorage) GetUserByLogin(ctx context.Context, userLogin string) (model
 	return u, nil
 }
 
-func (s *DBStorage) AddUser(ctx context.Context, userLogin string, userPassword string) (models.User, error) {
+func (s *DBStorage) AddUser(ctx context.Context, userLogin string, userPassword []byte) (models.User, error) {
 	const addUserQuery = `INSERT INTO users (login, password) VALUES ($1, $2) RETURNING id, login, password`
 	const addBalanceQuery = `INSERT INTO balance (user_id) VALUES ($1)`
 

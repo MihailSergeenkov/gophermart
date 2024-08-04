@@ -89,17 +89,17 @@ func validateRequest(req models.RegisterUserRequest) error {
 	return nil
 }
 
-func hashPassword(password string) (string, error) {
+func hashPassword(password string) ([]byte, error) {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
-		return "", fmt.Errorf("could not hash password %w", err)
+		return nil, fmt.Errorf("could not hash password %w", err)
 	}
 
-	return string(hashedPassword), nil
+	return hashedPassword, nil
 }
 
-func verifyPassword(hashedPassword string, candidatePassword string) error {
-	err := bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(candidatePassword))
+func verifyPassword(hashedPassword []byte, candidatePassword string) error {
+	err := bcrypt.CompareHashAndPassword(hashedPassword, []byte(candidatePassword))
 	if err != nil {
 		return fmt.Errorf("failed to compare: %w", err)
 	}

@@ -1,12 +1,13 @@
 package services
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"strconv"
 
 	"github.com/MihailSergeenkov/gophermart/internal/app/config"
-	"github.com/MihailSergeenkov/gophermart/internal/app/data"
+	"github.com/MihailSergeenkov/gophermart/internal/app/models"
 )
 
 var ErrOrderNumberValidation = errors.New("order number has not been validated")
@@ -17,11 +18,23 @@ const (
 )
 
 type Services struct {
-	store    data.Storager
+	store    Storager
 	settings *config.Settings
 }
 
-func NewServices(store data.Storager, settings *config.Settings) *Services {
+type Storager interface {
+	GetUserByLogin(ctx context.Context, userLogin string) (models.User, error)
+	AddUser(ctx context.Context, userLogin string, userPassword []byte) (models.User, error)
+	GetOrdersByUserID(ctx context.Context) ([]models.Order, error)
+	AddOrder(ctx context.Context, number string) (models.Order, bool, error)
+	GetWithdrawals(ctx context.Context) ([]models.Withdraw, error)
+	AddWithdraw(ctx context.Context, orderNumber string, sum float32) error
+	GetBalance(ctx context.Context) (models.Balance, error)
+	Ping(ctx context.Context) error
+	Close() error
+}
+
+func NewServices(store Storager, settings *config.Settings) *Services {
 	return &Services{
 		store:    store,
 		settings: settings,

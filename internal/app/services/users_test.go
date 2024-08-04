@@ -7,8 +7,8 @@ import (
 
 	"github.com/MihailSergeenkov/gophermart/internal/app/config"
 	"github.com/MihailSergeenkov/gophermart/internal/app/data"
-	"github.com/MihailSergeenkov/gophermart/internal/app/data/mocks"
 	"github.com/MihailSergeenkov/gophermart/internal/app/models"
+	"github.com/MihailSergeenkov/gophermart/internal/app/services/mocks"
 	"github.com/golang/mock/gomock"
 	"github.com/jackc/pgconn"
 	"github.com/jackc/pgerrcode"
@@ -59,7 +59,7 @@ func TestRegisterUser(t *testing.T) {
 				user: models.User{
 					ID:       1,
 					Login:    "test",
-					Password: "some_hash",
+					Password: []byte("some_hash"),
 				},
 				err: nil,
 			},
@@ -241,7 +241,7 @@ func TestLoginUser(t *testing.T) {
 				user: models.User{
 					ID:       1,
 					Login:    "test",
-					Password: "$2a$10$eqoHdZljD4bk/zPKKGAPre6Mmq2mj8XxSrjF4SpavRy.pT/uxijYa",
+					Password: []byte("$2a$10$eqoHdZljD4bk/zPKKGAPre6Mmq2mj8XxSrjF4SpavRy.pT/uxijYa"),
 				},
 				err: nil,
 			},
@@ -298,7 +298,7 @@ func TestLoginUser(t *testing.T) {
 				user: models.User{
 					ID:       1,
 					Login:    "test",
-					Password: "$2a$10$eqoHdZljD4bk/zPKKGAPre6Mmq2mj8XxSrjF4SpavRy.pT/uxijYa",
+					Password: []byte("$2a$10$eqoHdZljD4bk/zPKKGAPre6Mmq2mj8XxSrjF4SpavRy.pT/uxijYa"),
 				},
 				err: nil,
 			},

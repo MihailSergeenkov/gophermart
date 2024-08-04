@@ -47,13 +47,14 @@ func run() error {
 	if err != nil {
 		return fmt.Errorf("config error: %w", err)
 	}
+	log.Printf("test: %s", c.Accrual.SystemAddress)
 
 	l, err := logger.NewLogger(c.LogLevel)
 	if err != nil {
 		return fmt.Errorf("logger error: %w", err)
 	}
 
-	s, err := data.NewStorage(ctx, l, c)
+	s, err := data.NewDBStorage(ctx, l, c.DatabaseURI)
 	if err != nil {
 		return fmt.Errorf("storage error: %w", err)
 	}

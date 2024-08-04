@@ -14,7 +14,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func authMiddleware(settings *config.Settings, l *zap.Logger, s data.Storager) func(next http.Handler) http.Handler {
+func authMiddleware(settings *config.Settings, l *zap.Logger, s Storager) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			authCookie, cookieErr := r.Cookie("AUTH_TOKEN")

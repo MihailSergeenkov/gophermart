@@ -1,10 +1,11 @@
 package routes
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/MihailSergeenkov/gophermart/internal/app/config"
-	"github.com/MihailSergeenkov/gophermart/internal/app/data"
+	"github.com/MihailSergeenkov/gophermart/internal/app/models"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"go.uber.org/zap"
@@ -21,10 +22,14 @@ type Handlerer interface {
 	AddWithdraw() http.HandlerFunc
 }
 
+type Storager interface {
+	GetUserByID(ctx context.Context, userID int) (models.User, error)
+}
+
 var ContentTypeHeader = "Content-Type"
 var JSONContentType = "application/json"
 
-func NewRouter(h Handlerer, settings *config.Settings, l *zap.Logger, s data.Storager) chi.Router {
+func NewRouter(h Handlerer, settings *config.Settings, l *zap.Logger, s Storager) chi.Router {
 	r := chi.NewRouter()
 
 	r.Get("/ping", h.Ping())

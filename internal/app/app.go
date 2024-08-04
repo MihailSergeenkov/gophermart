@@ -4,7 +4,6 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/MihailSergeenkov/gophermart/internal/app/clients"
 	"github.com/MihailSergeenkov/gophermart/internal/app/config"
 	"github.com/MihailSergeenkov/gophermart/internal/app/data"
 	"github.com/MihailSergeenkov/gophermart/internal/app/handlers"
@@ -14,12 +13,11 @@ import (
 	"go.uber.org/zap"
 )
 
-func InitApp(ctx context.Context, settings *config.Settings, logger *zap.Logger, store data.Storager) *http.Server {
+func InitApp(ctx context.Context, settings *config.Settings, logger *zap.Logger, store *data.DBStorage) *http.Server {
 	s := services.NewServices(store, settings)
 	h := handlers.NewHandlers(s, logger)
 	r := routes.NewRouter(h, settings, logger, store)
-	c := clients.InitClients(settings, logger)
-	j := jobs.NewBackgroudProcessing(c, settings, logger, store)
+	j := jobs.NewBackgroudProcessing(settings, logger, store)
 	j.Start(ctx)
 
 	return &http.Server{

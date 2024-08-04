@@ -7,26 +7,32 @@ import (
 	"time"
 
 	"github.com/MihailSergeenkov/gophermart/internal/app/clients"
-	"github.com/MihailSergeenkov/gophermart/internal/app/data"
 	"github.com/MihailSergeenkov/gophermart/internal/app/models"
 	"go.uber.org/zap"
-	"golang.org/x/sync/errgroup"
 )
 
 func (bp *BackgroudProcessing) processOrdersAccrual(ctx context.Context) {
 	var retryAfter time.Time
+	client := clients.NewAccrualClient(&bp.settings.Accrual, bp.logger)
 
 	ticker := time.NewTicker(bp.settings.ProcessOrderAccrualPeriod)
-	stopGeneratorCh := make(chan struct{})
-	defer close(stopGeneratorCh)
-	stopWorkerCh := make(chan struct{}, bp.settings.ProcessOrderAccrualWorkers)
-	defer close(stopWorkerCh)
+
+	ordersCh := make(chan models.Order)
+	defer close(ordersCh)
+
+	for range bp.settings.ProcessOrderAccrualWorkers {
+		go worker(ctx, bp, client, ordersCh, &retryAfter)
+	}
 
 	for {
 		select {
 		case <-ctx.Done():
 			return
 		case <-ticker.C:
+			if ctx.Err() != nil {
+				return
+			}
+
 			if time.Now().Before(retryAfter) {
 				continue
 			}
@@ -37,75 +43,51 @@ func (bp *BackgroudProcessing) processOrdersAccrual(ctx context.Context) {
 				continue
 			}
 
-			g := new(errgroup.Group)
-			ordersCh := generator(stopGeneratorCh, orders)
-
-			for range bp.settings.ProcessOrderAccrualWorkers {
-				go worker(ctx, bp.store, bp.c.AccrualClient, g, stopWorkerCh, ordersCh)
-			}
-
-			if err := g.Wait(); err != nil {
-				var pgxError *clients.TooManyRequestsError
-				if errors.As(err, &pgxError) {
-					retryAfter = pgxError.RetryAfter
-					if _, opened := <-ordersCh; opened {
-						stopGeneratorCh <- struct{}{}
-					}
-
-					for range bp.settings.ProcessOrderAccrualWorkers {
-						stopWorkerCh <- struct{}{}
-					}
-				}
-			}
+			go addOrdersToCh(ctx, ordersCh, orders)
 		}
 	}
 }
 
-func generator(stopCh <-chan struct{}, orders []models.Order) chan models.Order {
-	inputCh := make(chan models.Order)
-
-	go func() {
-		defer close(inputCh)
-
-		for _, order := range orders {
-			select {
-			case <-stopCh:
-				return
-			case inputCh <- order:
-			}
+func addOrdersToCh(ctx context.Context, ordersCh chan<- models.Order, orders []models.Order) {
+	for _, order := range orders {
+		select {
+		case <-ctx.Done():
+			return
+		case ordersCh <- order:
 		}
-	}()
-
-	return inputCh
+	}
 }
 
-func worker(ctx context.Context,
-	s data.Storager,
+func worker(
+	ctx context.Context,
+	bp *BackgroudProcessing,
 	client *clients.AccrualClient,
-	g *errgroup.Group,
-	stopCh <-chan struct{},
-	ordersCh <-chan models.Order) {
+	ordersCh <-chan models.Order,
+	retryAfter *time.Time) {
 	for order := range ordersCh {
 		select {
-		case <-stopCh:
+		case <-ctx.Done():
 			return
 		default:
-			g.Go(func() error {
-				err := processOrderAccrual(ctx, s, client, order)
-				if err != nil && errors.Is(err, &clients.TooManyRequestsError{}) {
-					return fmt.Errorf("too many requests: %w", err)
+			now := time.Now()
+			if now.Before(*retryAfter) {
+				time.Sleep(retryAfter.Sub(now))
+			}
+
+			err := processOrderAccrual(ctx, bp.store, client, order)
+			if err != nil {
+				var pgxError *clients.TooManyRequestsError
+				if errors.As(err, &pgxError) {
+					*retryAfter = pgxError.RetryAfter
 				}
 
-				return nil
-			})
+				bp.logger.Error("failed process order accrual", zap.Error(err))
+			}
 		}
 	}
 }
 
-func processOrderAccrual(ctx context.Context,
-	s data.Storager,
-	client *clients.AccrualClient,
-	order models.Order) error {
+func processOrderAccrual(ctx context.Context, s Storager, client *clients.AccrualClient, order models.Order) error {
 	statusMap := map[string]string{
 		"REGISTERED": "PROCESSING",
 		"PROCESSING": "PROCESSING",
