@@ -47,7 +47,6 @@ func run() error {
 	if err != nil {
 		return fmt.Errorf("config error: %w", err)
 	}
-	log.Printf("test: %s", c.Accrual.SystemAddress)
 
 	l, err := logger.NewLogger(c.LogLevel)
 	if err != nil {

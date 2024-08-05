@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/MihailSergeenkov/gophermart/internal/app/clients"
@@ -11,8 +12,19 @@ import (
 	"go.uber.org/zap"
 )
 
+type block struct {
+	retryAfter time.Time
+	mu         sync.Mutex
+}
+
+func (b *block) setRetryAfter(t time.Time) {
+	b.mu.Lock()
+	b.retryAfter = t
+	b.mu.Unlock()
+}
+
 func (bp *BackgroudProcessing) processOrdersAccrual(ctx context.Context) {
-	var retryAfter time.Time
+	var b block
 	client := clients.NewAccrualClient(&bp.settings.Accrual, bp.logger)
 
 	ticker := time.NewTicker(bp.settings.ProcessOrderAccrualPeriod)
@@ -21,7 +33,7 @@ func (bp *BackgroudProcessing) processOrdersAccrual(ctx context.Context) {
 	defer close(ordersCh)
 
 	for range bp.settings.ProcessOrderAccrualWorkers {
-		go worker(ctx, bp, client, ordersCh, &retryAfter)
+		go worker(ctx, bp, client, ordersCh, &b)
 	}
 
 	for {
@@ -33,7 +45,7 @@ func (bp *BackgroudProcessing) processOrdersAccrual(ctx context.Context) {
 				return
 			}
 
-			if time.Now().Before(retryAfter) {
+			if time.Now().Before(b.retryAfter) {
 				continue
 			}
 
@@ -63,22 +75,22 @@ func worker(
 	bp *BackgroudProcessing,
 	client *clients.AccrualClient,
 	ordersCh <-chan models.Order,
-	retryAfter *time.Time) {
+	b *block) {
 	for order := range ordersCh {
 		select {
 		case <-ctx.Done():
 			return
 		default:
 			now := time.Now()
-			if now.Before(*retryAfter) {
-				time.Sleep(retryAfter.Sub(now))
+			if now.Before(b.retryAfter) {
+				time.Sleep(b.retryAfter.Sub(now))
 			}
 
 			err := processOrderAccrual(ctx, bp.store, client, order)
 			if err != nil {
 				var pgxError *clients.TooManyRequestsError
 				if errors.As(err, &pgxError) {
-					*retryAfter = pgxError.RetryAfter
+					b.setRetryAfter(pgxError.RetryAfter)
 				}
 
 				bp.logger.Error("failed process order accrual", zap.Error(err))
